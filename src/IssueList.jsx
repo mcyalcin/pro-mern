@@ -150,7 +150,6 @@ export default class IssueList extends React.Component {
           </Panel.Collapse>
         </Panel>
         <IssueTable issues={this.state.issues} deleteIssue={this.deleteIssue} />
-        <IssueAdd createIssue={this.createIssue} />
       </div>
     );
   }

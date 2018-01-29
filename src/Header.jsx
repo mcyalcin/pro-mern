@@ -5,9 +5,10 @@ import {
   NavItem,
   NavDropdown,
   MenuItem,
-  Glyphicon
+  Glyphicon,
 } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
+import IssueAddNavItem from './IssueAddNavItem';
 
 const Header = () => (
   <Navbar fluid>
@@ -25,7 +26,7 @@ const Header = () => (
       </LinkContainer>
     </Nav>
     <Nav pullRight>
-      <NavItem><Glyphicon glyph="plus" /> Create Issue</NavItem>
+      <IssueAddNavItem />
       <NavDropdown id="user-dropdown" title={<Glyphicon glyph="option-horizontal" />} noCaret>
         <MenuItem>Logout</MenuItem>
       </NavDropdown>

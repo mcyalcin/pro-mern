@@ -65,6 +65,7 @@ app.post('/api/issues', (req, res) => {
   newIssue.created = new Date();
   if (!newIssue.status) newIssue.status = 'New';
   const err = Issue.validateIssue(newIssue);
+  console.log(newIssue);
   if (err) {
     res.status(422).json({ message: `Invalid request: ${err}` });
     return;

@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { LinkContainer } from 'react-router-bootstrap';
 import PropTypes from 'prop-types';
 import {
@@ -11,9 +10,11 @@ import {
   Panel,
   Form,
   Col,
+  Alert,
 } from 'react-bootstrap';
 import NumInput from './NumInput';
 import DateInput from './DateInput';
+import Toast from './Toast';
 
 export default class IssueEdit extends React.Component {
   constructor() {
@@ -29,10 +30,19 @@ export default class IssueEdit extends React.Component {
         created: null,
       },
       invalidFields: {},
+      showingValidation: false,
+      toastVisible: false,
+      toastMessage: '',
+      toastType: 'success',
     };
     this.onSubmit = this.onSubmit.bind(this);
     this.onChange = this.onChange.bind(this);
     this.onValidityChange = this.onValidityChange.bind(this);
+    this.dismissValidation = this.dismissValidation.bind(this);
+    this.showValidation = this.showValidation.bind(this);
+    this.showSuccess = this.showSuccess.bind(this);
+    this.showError = this.showError.bind(this);
+    this.dismissToast = this.dismissToast.bind(this);
   }
 
   componentDidMount() {
@@ -66,6 +76,7 @@ export default class IssueEdit extends React.Component {
 
   onSubmit(event) {
     event.preventDefault();
+    this.showValidation();
     if (Object.keys(this.state.invalidFields).length !== 0) return;
 
     fetch(`/api/issues/${this.props.match.params.id}`, {
@@ -83,18 +94,18 @@ export default class IssueEdit extends React.Component {
                 updatedIssue.completionDate = new Date(updatedIssue.completionDate);
               }
               this.setState({ issue: updatedIssue });
-              alert('Updated issue successfully.');
+              this.showSuccess('Updated issue successfully.');
             });
         } else {
           response
             .json()
             .then((error) => {
-              alert(`Failed to update issue: ${error}`);
+              this.showError(`Failed to update issue: ${error}`);
             });
         }
       })
       .catch((err) => {
-        alert(`Error in sending data to server: ${err.message}`);
+        this.showError(`Error in sending data to server: ${err.message}`);
       });
   }
 
@@ -120,13 +131,33 @@ export default class IssueEdit extends React.Component {
           response
             .json()
             .then((error) => {
-              alert(`Failed to fetch issue: ${error.message}`);
+              this.showError(`Failed to fetch issue: ${error.message}`);
             });
         }
       })
       .catch((error) => {
-        alert(`Error in fetching data from server: ${error.message}`);
+        this.showError(`Error in fetching data from server: ${error.message}`);
       });
+  }
+
+  showValidation() {
+    this.setState({ showingValidation: true });
+  }
+
+  dismissValidation() {
+    this.setState({ showingValidation: false });
+  }
+
+  showSuccess(message) {
+    this.setState({ toastVisible: true, toastMessage: message, toastType: 'success' });
+  }
+
+  showError(message) {
+    this.setState({ toastVisible: true, toastMessage: message, toastType: 'danger' });
+  }
+
+  dismissToast() {
+    this.setState({ toastVisible: false });
   }
 
   render() {
@@ -139,10 +170,14 @@ export default class IssueEdit extends React.Component {
       completionDate,
       title,
     } = this.state.issue;
-    const validationMessage =
-      Object.keys(this.state.invalidFields).length === 0 ?
-        null :
-        (<div className="error">Please correct invalid fields before submitting.</div>);
+    let validationMessage = null;
+    if (Object.keys(this.state.invalidFields).length !== 0 && this.state.showingValidation) {
+      validationMessage = (
+        <Alert bsStyle="danger" onDismiss={this.dismissValidation}>
+          Please correct invalid fields before submitting.
+        </Alert>
+      );
+    }
     return (
       <Panel>
         <Panel.Heading>
@@ -232,8 +267,16 @@ export default class IssueEdit extends React.Component {
                 </ButtonToolbar>
               </Col>
             </FormGroup>
+            <FormGroup>
+              <Col smOffset={3} sm={9}>{validationMessage}</Col>
+            </FormGroup>
           </Form>
-          {validationMessage}
+          <Toast
+            showing={this.state.toastVisible}
+            message={this.state.toastMessage}
+            onDismiss={this.dismissToast}
+            bsStyle={this.state.toastType}
+          />
         </Panel.Body>
       </Panel>
     );
